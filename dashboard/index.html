@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopee Sentinel — AI Fraud Detection & Moderator Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-card: rgba(22, 30, 49, 0.75);
+            --bg-card-hover: rgba(30, 41, 67, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-shopee: #ee4d2d;
+            --accent-orange-glow: rgba(238, 77, 45, 0.25);
+            --color-approved: #10b981;
+            --color-suspended: #f59e0b;
+            --color-rejected: #ef4444;
+            --color-blue: #3b82f6;
+            --glass-blur: blur(16px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(238, 77, 45, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #ee4d2d, #ff7337);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 0 20px var(--accent-orange-glow);
+        }
+
+        .brand-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .demo-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .demo-bar span {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        .btn-demo {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-fake {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .btn-fake:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-ambiguous {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .btn-ambiguous:hover {
+            background: rgba(245, 158, 11, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-legit {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .btn-legit:hover {
+            background: rgba(16, 185, 129, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: var(--glass-blur);
+            transition: transform 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .val-total { color: #f3f4f6; }
+        .val-approved { color: var(--color-approved); }
+        .val-suspended { color: var(--color-suspended); }
+        .val-rejected { color: var(--color-rejected); }
+
+        /* Queue Section */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-count {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem 1.25rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .listing-title {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .listing-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .risk-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .risk-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .risk-medium { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .risk-low { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .btn-inspect {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-inspect:hover {
+            background: rgba(59, 130, 246, 0.3);
+            color: #ffffff;
+        }
+
+        /* Inspection Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #111827;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 750px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .detail-box h4 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .notes-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            color: #ffffff;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-approve {
+            background: var(--color-approved);
+            color: #ffffff;
+        }
+        .btn-approve:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-reject {
+            background: var(--color-rejected);
+            color: #ffffff;
+        }
+        .btn-reject:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-icon">🛡️</div>
+            <div class="brand-text">
+                <h1>Shopee Sentinel</h1>
+                <p>AI Fraudulent Product Detection & Moderator Workstation</p>
+            </div>
+        </div>
+
+        <div class="demo-bar">
+            <span>⚡ Demo Scenarios:</span>
+            <button class="btn-demo btn-fake" onclick="triggerScenario('obvious_fake')">🔴 1. Obvious Fake</button>
+            <button class="btn-demo btn-ambiguous" onclick="triggerScenario('ambiguous')">🟡 2. Ambiguous</button>
+            <button class="btn-demo btn-legit" onclick="triggerScenario('legitimate')">🟢 3. Legitimate</button>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Scanned</div>
+            <div class="stat-value val-total" id="stat-total">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Auto-Approved</div>
+            <div class="stat-value val-approved" id="stat-approved">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Suspended Queue</div>
+            <div class="stat-value val-suspended" id="stat-suspended">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Rejected Fraud</div>
+            <div class="stat-value val-rejected" id="stat-rejected">0</div>
+        </div>
+    </div>
+
+    <!-- Moderator Queue Section -->
+    <div class="section-header">
+        <div class="section-title">
+            <span>Human-In-The-Loop Review Queue</span>
+            <span class="badge-count" id="queue-badge">0 Pending</span>
+        </div>
+        <button class="btn-inspect" onclick="loadDashboard()">🔄 Refresh Queue</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Listing</th>
+                    <th>Price vs Baseline</th>
+                    <th>NLP Flag Score</th>
+                    <th>Price Anomaly</th>
+                    <th>Seller Trust Score</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="queue-tbody">
+                <tr>
+                    <td colspan="6" class="empty-state">Loading suspended queue...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Inspection Modal -->
+    <div class="modal-overlay" id="inspection-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modal-item-title">Product Title</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);" id="modal-item-category">Category</div>
+                </div>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-box">
+                    <h4>Listing Details</h4>
+                    <p style="margin-bottom: 6px;"><strong>Listed Price:</strong> $<span id="modal-item-price">0.00</span></p>
+                    <p style="margin-bottom: 6px;"><strong>Category Benchmark:</strong> $<span id="modal-baseline-price">0.00</span></p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);" id="modal-item-desc">Description snippet...</p>
+                </div>
+
+                <div class="detail-box">
+                    <h4>Seller Risk Factors</h4>
+                    <p style="margin-bottom: 6px;"><strong>Seller Name:</strong> <span id="modal-seller-name">Seller</span></p>
+                    <p style="margin-bottom: 6px;"><strong>Verification:</strong> <span id="modal-seller-verification">Unverified</span></p>
+                    <p style="margin-bottom: 6px;"><strong>Trust Score:</strong> <span id="modal-seller-trust">50</span> / 100</p>
+                </div>
+
+                <div class="detail-box">
+                    <h4>AI NLP Flag Score</h4>
+                    <div class="stat-value" id="modal-nlp-score" style="font-size: 1.5rem;">0.00</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Probability of counterfeit/deceptive language.</p>
+                </div>
+
+                <div class="detail-box">
+                    <h4>AI Price Anomaly Score</h4>
+                    <div class="stat-value" id="modal-price-score" style="font-size: 1.5rem;">0.00</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Z-score deviation from category median.</p>
+                </div>
+            </div>
+
+            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Moderator Review Notes (Optional):</label>
+            <textarea class="notes-input" id="modal-notes" rows="3" placeholder="Add audit notes or justification for approval/rejection..."></textarea>
+
+            <div class="modal-actions">
+                <button class="btn-action btn-approve" onclick="submitDecision('approved')">✅ Approve Listing</button>
+                <button class="btn-action btn-reject" onclick="submitDecision('rejected')">❌ Reject & Ban Listing</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentListingId = null;
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/moderator/stats');
+                const data = await res.json();
+                document.getElementById('stat-total').innerText = data.total_scanned;
+                document.getElementById('stat-approved').innerText = data.approved_count;
+                document.getElementById('stat-suspended').innerText = data.suspended_count;
+                document.getElementById('stat-rejected').innerText = data.rejected_count;
+                document.getElementById('queue-badge').innerText = `${data.suspended_count} Pending`;
+            } catch (err) {
+                console.error("Error fetching stats:", err);
+            }
+        }
+
+        async function fetchQueue() {
+            try {
+                const res = await fetch('/api/moderator/queue');
+                const listings = await res.json();
+                const tbody = document.getElementById('queue-tbody');
+                
+                if (listings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">🎉 Queue is clear! No suspended listings requiring review.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = listings.map(item => {
+                    const nlpPct = Math.round((item.nlp_flag_score || 0) * 100);
+                    const pricePct = Math.round((item.price_anomaly_score || 0) * 100);
+                    const trustScore = Math.round(item.seller_trust_score || 50);
+
+                    return `
+                        <tr>
+                            <td>
+                                <div class="listing-title">${escapeHtml(item.title)}</div>
+                                <div class="listing-meta">ID: ${item.id.slice(0, 8)} | Seller: ${escapeHtml(item.seller_name)}</div>
+                            </td>
+                            <td>
+                                <strong style="color:#ffffff;">$${item.price.toFixed(2)}</strong>
+                                <div class="listing-meta">Base: $${(item.category_baseline_price || 0).toFixed(2)}</div>
+                            </td>
+                            <td>
+                                <span class="risk-pill ${nlpPct > 70 ? 'risk-high' : nlpPct > 40 ? 'risk-medium' : 'risk-low'}">
+                                    ${nlpPct}% Flagged
+                                </span>
+                            </td>
+                            <td>
+                                <span class="risk-pill ${pricePct > 70 ? 'risk-high' : pricePct > 40 ? 'risk-medium' : 'risk-low'}">
+                                    ${pricePct}% Anomaly
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 600; color: ${trustScore > 70 ? '#10b981' : trustScore > 40 ? '#f59e0b' : '#ef4444'};">
+                                    ${trustScore} / 100
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-inspect" onclick="openModal('${item.id}')">Inspect & Audit</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error fetching queue:", err);
+            }
+        }
+
+        async function openModal(id) {
+            currentListingId = id;
+            try {
+                const res = await fetch(`/api/listings/${id}`);
+                const data = await res.json();
+                
+                document.getElementById('modal-item-title').innerText = data.title;
+                document.getElementById('modal-item-category').innerText = `Category: ${data.category.toUpperCase()}`;
+                document.getElementById('modal-item-price').innerText = data.price.toFixed(2);
+                document.getElementById('modal-item-desc').innerText = data.description || 'No description provided.';
+                
+                document.getElementById('modal-seller-name').innerText = data.seller_name;
+                document.getElementById('modal-seller-trust').innerText = Math.round(data.seller_trust_score);
+                
+                document.getElementById('modal-nlp-score').innerText = `${Math.round((data.nlp_flag_score || 0) * 100)}%`;
+                document.getElementById('modal-price-score').innerText = `${Math.round((data.price_anomaly_score || 0) * 100)}%`;
+                document.getElementById('modal-notes').value = '';
+
+                document.getElementById('inspection-modal').style.display = 'flex';
+            } catch (err) {
+                console.error("Error opening modal:", err);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('inspection-modal').style.display = 'none';
+            currentListingId = null;
+        }
+
+        async function submitDecision(action) {
+            if (!currentListingId) return;
+            const notes = document.getElementById('modal-notes').value;
+            
+            try {
+                const res = await fetch(`/api/moderator/decision/${currentListingId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action, notes: notes })
+                });
+                
+                closeModal();
+                loadDashboard();
+            } catch (err) {
+                alert("Error submitting decision: " + err);
+            }
+        }
+
+        async function triggerScenario(scenario) {
+            try {
+                const res = await fetch(`/api/moderator/trigger-scenario/${scenario}`, { method: 'POST' });
+                const data = await res.json();
+                alert(`⚡ Demo Triggered (${scenario}): Result = ${data.decision.toUpperCase()}`);
+                loadDashboard();
+            } catch (err) {
+                alert("Error triggering scenario: " + err);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+        }
+
+        function loadDashboard() {
+            fetchStats();
+            fetchQueue();
+        }
+
+        // Auto load dashboard on startup & refresh every 10 seconds
+        loadDashboard();
+        setInterval(loadDashboard, 10000);
+    </script>
+</body>
+</html>

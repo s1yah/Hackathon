@@ -35,6 +35,7 @@ class Listing(Base):
     
     nlp_flag_score = Column(Float, nullable=True)
     price_anomaly_score = Column(Float, nullable=True)
+    review_score = Column(Float, nullable=True)          # RoBERTa fake-review probability
     final_decision = Column(String(50), nullable=True)
     moderator_reviewed = Column(Boolean, default=False)
     

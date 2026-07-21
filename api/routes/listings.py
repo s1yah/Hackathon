@@ -38,7 +38,7 @@ def submit_listing(payload: ListingCreateSchema, background_tasks: BackgroundTas
     db.refresh(listing)
 
     # Process inspection in background to avoid blocking API
-    background_tasks.add_task(process_listing_sync, listing.id, db)
+    background_tasks.add_task(process_listing_sync, listing.id, db, payload.reviews or [])
 
     return {
         "listing_id": listing.id,
@@ -65,6 +65,7 @@ def get_listing(listing_id: str, db: Session = Depends(get_db)):
         "category": listing.category,
         "status": listing.status,
         "nlp_flag_score": listing.nlp_flag_score,
+        "review_score": listing.review_score,
         "price_anomaly_score": listing.price_anomaly_score,
         "final_decision": listing.final_decision,
         "moderator_reviewed": listing.moderator_reviewed,

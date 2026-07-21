@@ -8,6 +8,10 @@ class ListingCreateSchema(BaseModel):
     description: Optional[str] = Field("", description="Product description")
     price: float = Field(..., gt=0, description="Listing price in USD or local currency")
     category: str = Field(..., description="Product category")
+    reviews: Optional[List[str]] = Field(
+        default=[],
+        description="Optional list of existing product reviews to analyse for authenticity"
+    )
 
 class ModeratorDecisionSchema(BaseModel):
     action: str = Field(..., description="Decision: 'approved' or 'rejected'")
@@ -34,6 +38,7 @@ class ListingResponseSchema(BaseModel):
     status: str
     nlp_flag_score: Optional[float]
     price_anomaly_score: Optional[float]
+    review_score: Optional[float]
     final_decision: Optional[str]
     moderator_reviewed: bool
     submitted_at: datetime

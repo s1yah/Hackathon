@@ -120,3 +120,11 @@ In the live **Moderator Dashboard** (`http://localhost:8000/`), you can test **3
 1. 🔴 **1. Obvious Fake**: Instantly triggers a $15 counterfeit iPhone listing $\rightarrow$ Auto-Rejected.
 2. 🟡 **2. Ambiguous Listing**: Triggers a mid-range refurbished headphone listing $\rightarrow$ Suspended and routed to the Human Moderator Queue for inspection.
 3. 🟢 **3. Legitimate Listing**: Triggers an official Sony store listing $\rightarrow$ Auto-Approved.
+
+## Datasets Used
+
+1. Fake Reviews Dataset - https://www.kaggle.com/datasets/muqaddasejaz/fake-reviews-dataset
+3. E-commerce Product Prices - https://www.kaggle.com/datasets/steve1215rogg/e-commerce-dataset
+4. Amazon E-commerce Products & Reviews Dataset (Backup for Testing) - https://www.kaggle.com/datasets/lazylad99/amazon-e-commerce-product-and-review-dataset
+
+* Note: The datasets were cleaned before training. 

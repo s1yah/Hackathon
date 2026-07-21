@@ -93,9 +93,49 @@ def seed_database():
     db.add_all(sample_listings)
     db.commit()
 
-    print("[INFO] Processing initial AI safety inspections...")
-    for listing in sample_listings:
-        process_listing_sync(listing.id, db)
+    print("[INFO] Processing initial AI safety inspections (NLP + RoBERTa Reviews + Pricing)...")
+
+    # Sample reviews paired to each listing for RoBERTa analysis
+    sample_reviews = [
+        # 1. Legitimate Sony listing — healthy mixed reviews
+        [
+            "Excellent noise cancellation, worth every penny. Battery lasts all day.",
+            "Build quality is superb. Had a minor issue with the app but Sony support resolved it quickly.",
+            "Sound is incredible. The case could be a bit sturdier but overall very happy.",
+            "Great headphones, though I expected a slightly wider soundstage at this price.",
+        ],
+        # 2. Ambiguous refurb headphones — vague, generic reviews
+        [
+            "Good product, fast delivery. Exactly as described.",
+            "Five stars, recommend to everyone. Good product.",
+            "Arrived quickly. Good product. Five stars.",
+            "Fast shipping, good product, recommend everyone.",
+        ],
+        # 3. Fake iPhone listing — obvious bait-and-switch reviews
+        [
+            "Five stars! Perfect! Perfect! Super cheap factory price. Exactly as described.",
+            "100% original quality! Recommend to everyone! Five stars!",
+            "Super fast arrival exactly as described good product five stars!",
+            "Amazing deal! Buy now! Perfect exactly as described!",
+        ],
+        # 4. Replica handbag — manipulated review signals
+        [
+            "Same as original! Everyone should buy! Five stars recommend!",
+            "Good product fast shipping exactly as described five stars.",
+            "Perfect quality five stars recommend everyone buy now!",
+            "Arrived fast. Perfect. Five stars. Exactly as described.",
+        ],
+        # 5. Legitimate Uniqlo listing — genuine varied reviews
+        [
+            "Soft and breathable, wears well in warm weather. True to size.",
+            "Love the AIRism fabric but the colour faded slightly after 10 washes.",
+            "Great everyday T-shirt. Already bought three colours.",
+            "Comfortable but runs slightly slim. Size up if between sizes.",
+        ],
+    ]
+
+    for listing, reviews in zip(sample_listings, sample_reviews):
+        process_listing_sync(listing.id, db, reviews)
 
     db.close()
     print("[SUCCESS] Seed completed successfully! Database ready for demo.")
